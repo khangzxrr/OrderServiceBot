@@ -1,12 +1,4 @@
-﻿using OpenQA.Selenium.Chrome;
-using WebDriverManager;
-using WebDriverManager.DriverConfigs.Impl;
-using SeleniumUndetectedChromeDriver;
-using OpenQA.Selenium;
-
-new DriverManager().SetUpDriver(new ChromeConfig());
-
-var driver = UndetectedChromeDriver.Create(driverExecutablePath: await new ChromeDriverInstaller().Auto());
+﻿using OrderServiceBot;
 
 string[] urls = new string[] {
     "https://www.ebay.com/itm/115458094959?hash=item1ae1d6b76f:g:rz8AAOSwxe1jGuEv&amdata=enc%3AAQAHAAAA4HQthA%2BukhWSA3h7Uo8GZWwH9iAXNLwMfV91D1gtHv2cuYQOZPXaF2F9roFydnJbf%2BhL3QyuMiQd5hcK77kDq2sWKZ4KLxz0onJYmI9e2prNb1gvH4zhwQETh%2FAsGEpc394RvovezxVM7eVjkv1fQOVtLqXxHIWzC77QX4S8d%2Bm3grjyIZTu%2F0io4atHfOO%2B%2BDc5E0CkEVF%2F4owDu4xrRytAgBqvz91eODPLNkqidX61ACKpHDoREraygeRv%2BZYjf4KyNZOQbi8fNKYuaLeXctYUWU1PTrOcTcEX2rgzvXnj%7Ctkp%3ABFBM7vHS_dth",
@@ -15,27 +7,7 @@ string[] urls = new string[] {
     "https://www.ebay.com/itm/314184611122?hash=item4926dcb532:g:izwAAOSwPVljRiCE&amdata=enc%3AAQAHAAAA4NGRskQaF73PPaot8OgG8Xb837%2FPT%2BjI9UprTzUvX1GX3yIjooJI8z4%2FDtusjoj4Bea90vpPUoKrIDr2LYYl60bCKc53Oa6b1ltU7%2BLtz7BgL8UiRe126CmX0yE%2F5Bj1E3mykpWq9eWmJnDNCRy9qPgWhG%2FaLua654a1%2FyLRp5ATDPS8c2REf7j5yp6lfne3Gwo8CNlFamjwcnfbFS6IPL3EtWqGbol3yfpL%2FMMWmUSE%2FTNjMlrmLTW7A5DcJnAIG0Bs%2BkvQEEielwJ%2FyVnd4xQvxNNtThQ0DPbANXoVQSYB%7Ctkp%3ABFBMpK3b_dth"
 };
 
+var mqListener = new MqLisener();
+var mqLisenerThread = new Thread(mqListener.DoWork);
+mqLisenerThread.Start();
 
-foreach (var url in urls)
-{
-
-    driver.Navigate().GoToUrl(url);
-
-    var titleSelector = By.CssSelector("#LeftSummaryPanel h1 > span");
-    var title = driver.FindElement(titleSelector).Text;
-
-    var categorySelector = By.CssSelector("ul > li > a > span");
-    var category = driver.FindElement(categorySelector).Text;
-
-    var priceSelector = By.CssSelector("span[itemprop=\"price\"]");
-    var price = driver.FindElement(priceSelector).Text;
-
-    var shipSelector = By.CssSelector("div.ux-labels-values__values > div > div > span");
-    var ship = driver.FindElement(shipSelector).Text;
-
-    Console.WriteLine($"======\nCatalog: {category}\nProduct: {title}\nPrice: {price}\nShip:{ship}\n");
-
-}
-driver.Close();
-driver.Quit();
-driver.Dispose();
