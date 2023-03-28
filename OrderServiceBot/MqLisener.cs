@@ -1,11 +1,8 @@
-﻿using SeleniumUndetectedChromeDriver;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Text;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client;
 using Newtonsoft.Json;
+using OpenQA.Selenium;
 
 namespace OrderServiceBot
 {
@@ -13,6 +10,8 @@ namespace OrderServiceBot
     {
         public const string QUEUE_URLS = "eshop_queue";
         public const string QUEUE_RESULTS = "eshop_result";
+
+        IBotScrapper scapeBot;
 
         private void InitQueue(IModel channel, string queueName)
         {
@@ -25,7 +24,7 @@ namespace OrderServiceBot
 
         }
 
-        private void PublishProduct(IModel channel, ProductData productData)
+        private void PublishProduct(IModel channel, object productData)
         {
             string jsonObject = JsonConvert.SerializeObject(productData);
             var body = Encoding.UTF8.GetBytes(jsonObject);
@@ -38,10 +37,10 @@ namespace OrderServiceBot
 
         public void StartBot()
         {
-            IBotScrapper scapeBot = new BotScrapper();
+            scapeBot = new BotScrapper();
             scapeBot.Init();
 
-            var factory = new ConnectionFactory { HostName = "localhost" };
+            var factory = new ConnectionFactory { HostName = "host.docker.internal" };
             var connection = factory.CreateConnection();
             var channel = connection.CreateModel();
 
@@ -53,13 +52,48 @@ namespace OrderServiceBot
             {
                 var body = ea.Body.ToArray();
                 var url = Encoding.UTF8.GetString(body);
+
                 Console.WriteLine(url);
 
-                var product = scapeBot.Scrape(url);
-                PublishProduct(channel, product);
+                try
+                {
+                    var product = scapeBot.Scrape(url);
+                    PublishProduct(channel, product);
 
-                channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
+                    channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
+                }
+                catch(NoSuchElementException)
+                {
+                    Console.WriteLine("no element, return error for customer");
+                    channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
+                    PublishProduct(channel, new Message("selector errors"));
+                }
+                catch(Exception ex)
+                {
+                    if (ex.Message.Contains("invalid argument"))
+                    {
+                        Console.WriteLine("invalid argument exception");
+                        channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
+                        PublishProduct(channel, new Message("invalid arguments"));
+
+                    }
+                    else
+                    {
+                        //requeue message that error 
+                        channel.BasicNack(deliveryTag: ea.DeliveryTag, multiple: false, requeue: true);
+                    }
+
+                    Console.WriteLine(ex.Message);
+                    scapeBot.Dispose();
+
+                    Thread.Sleep(1000);
+
+                    scapeBot.Init();
+
+                }
+
             };
+
 
 
             channel.BasicConsume(queue: QUEUE_URLS, autoAck: false, consumer: consumer);
@@ -72,7 +106,6 @@ namespace OrderServiceBot
 
             while (true)
             {
-                Console.WriteLine("waiting..");
                 Thread.Sleep(10000);
             }
         }                                            

@@ -1,25 +1,28 @@
-﻿using OpenQA.Selenium;
-using SeleniumUndetectedChromeDriver;
-using WebDriverManager;
-using WebDriverManager.DriverConfigs.Impl;
+﻿
+
+using OpenQA.Selenium;
+using OpenQA.Selenium.Chrome;
+using OpenQA.Selenium.Remote;
 
 namespace OrderServiceBot
 {
-    public class BotScrapper : IBotScrapper, IDisposable
+    public class BotScrapper : IBotScrapper
     {
-        private UndetectedChromeDriver driver;
+        private WebDriver driver;
 
         public void Dispose()
         {
-            driver.Close();
             driver.Quit();
             driver.Dispose();
         }
 
-        public async void Init()
+        public void Init()
         {
-            new DriverManager().SetUpDriver(new ChromeConfig());
-            driver = UndetectedChromeDriver.Create(driverExecutablePath: await new ChromeDriverInstaller().Auto());
+            ChromeOptions chromeOptions = new ChromeOptions();
+
+            chromeOptions.AddArgument("--no-sandbox");
+
+            driver = new RemoteWebDriver(new Uri("http://host.docker.internal:4444"), chromeOptions);
         }
 
         public ProductData Scrape(string url)
@@ -40,7 +43,7 @@ namespace OrderServiceBot
 
             Console.WriteLine($"======\nCatalog: {category}\nProduct: {title}\nPrice: {price}\nShip:{ship}\n");
 
-            ProductData productData = new ProductData(title, category, price, ship);   
+            ProductData productData = new ProductData(category, title, price, ship, url);   
 
             return productData;
         }

@@ -1,24 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace OrderServiceBot
+﻿namespace OrderServiceBot
 {
     public class ProductData
     {
-        public string title { get; }
-        public string category { get; }
-        public string price { get; }
-        public string ship { get; }
+        public string Catalog { get; set; }
+        public string Product { get; set; }
+        public string Price { get; set; }
+        public string Ship { get; set; }
 
-        public ProductData(string title, string category, string price, string ship)
+        public string Url { get; set; }
+
+        public ProductData(string catalog, string product, string price, string ship, string url)
         {
-            this.title = title;
-            this.category = category;
-            this.price = price;
-            this.ship = ship;
+            Catalog = catalog;
+            Product = product;
+            Price = price;
+            Ship = ship;
+            Url = url;
         }
     }
 }
