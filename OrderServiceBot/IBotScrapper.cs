@@ -1,8 +1,10 @@
-﻿namespace OrderServiceBot
+﻿
+
+namespace OrderServiceBot
 {
     public interface IBotScrapper: IDisposable
     {
-        public ProductData Scrape(string url);
+        public RabbitResponseProductData Scrape(RabbitRequestProductData rabbitProductRequest);
         public void Init();
     }
 }

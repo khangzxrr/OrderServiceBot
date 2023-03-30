@@ -37,6 +37,8 @@ namespace OrderServiceBot
 
         public void StartBot()
         {
+
+
             scapeBot = new BotScrapper();
             scapeBot.Init();
 
@@ -50,14 +52,21 @@ namespace OrderServiceBot
             var consumer = new EventingBasicConsumer(channel);
             consumer.Received += (model, ea) =>
             {
-                var body = ea.Body.ToArray();
-                var url = Encoding.UTF8.GetString(body);
-
-                Console.WriteLine(url);
-
                 try
                 {
-                    var product = scapeBot.Scrape(url);
+                    var body = ea.Body.ToArray();
+                    var json = Encoding.UTF8.GetString(body);
+                    var rabbitProductRequest = JsonConvert.DeserializeObject<RabbitRequestProductData>(json);
+
+                    if (rabbitProductRequest == null)
+                    {
+                        Console.WriteLine("request product is null");
+                        return;
+                    }
+
+                    Console.WriteLine(rabbitProductRequest.productUrl);
+
+                    var product = scapeBot.Scrape(rabbitProductRequest);
                     PublishProduct(channel, product);
 
                     channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);

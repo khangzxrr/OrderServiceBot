@@ -1,7 +1,8 @@
 ﻿namespace OrderServiceBot
 {
-    public class ProductData
+    public class RabbitResponseProductData
     {
+        public int UserId { get; set; }
         public string Catalog { get; set; }
         public string Product { get; set; }
         public string Price { get; set; }
@@ -9,8 +10,9 @@
 
         public string Url { get; set; }
 
-        public ProductData(string catalog, string product, string price, string ship, string url)
+        public RabbitResponseProductData(int userId, string catalog, string product, string price, string ship, string url)
         {
+            UserId = userId;
             Catalog = catalog;
             Product = product;
             Price = price;

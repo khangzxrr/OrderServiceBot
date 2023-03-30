@@ -18,16 +18,19 @@ namespace OrderServiceBot
 
         public void Init()
         {
+            Thread.Sleep(3000); //waiting for chrome worker to connect selenium hub
+
             ChromeOptions chromeOptions = new ChromeOptions();
+            chromeOptions.PageLoadStrategy = PageLoadStrategy.Eager;
 
             chromeOptions.AddArgument("--no-sandbox");
 
             driver = new RemoteWebDriver(new Uri("http://host.docker.internal:4444"), chromeOptions);
         }
 
-        public ProductData Scrape(string url)
+        public RabbitResponseProductData Scrape(RabbitRequestProductData rabbitProductRequest)
         {
-            driver.Navigate().GoToUrl(url);
+            driver.Navigate().GoToUrl(rabbitProductRequest.productUrl);
 
             var titleSelector = By.CssSelector("#LeftSummaryPanel h1 > span");
             var title = driver.FindElement(titleSelector).Text;
@@ -43,7 +46,7 @@ namespace OrderServiceBot
 
             Console.WriteLine($"======\nCatalog: {category}\nProduct: {title}\nPrice: {price}\nShip:{ship}\n");
 
-            ProductData productData = new ProductData(category, title, price, ship, url);   
+            RabbitResponseProductData productData = new RabbitResponseProductData(rabbitProductRequest.userId, category, title, price, ship, rabbitProductRequest.productUrl);   
 
             return productData;
         }
