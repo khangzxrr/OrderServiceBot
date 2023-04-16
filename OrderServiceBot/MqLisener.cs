@@ -42,7 +42,12 @@ namespace OrderServiceBot
             scapeBot = new BotScrapper();
             scapeBot.Init();
 
-            var factory = new ConnectionFactory { HostName = "host.docker.internal" };
+            
+
+            var factory = new ConnectionFactory { HostName = Environment.GetEnvironmentVariable("HOSTNAME") };
+            
+            Console.WriteLine(factory.HostName);
+
             var connection = factory.CreateConnection();
             var channel = connection.CreateModel();
 
@@ -52,11 +57,15 @@ namespace OrderServiceBot
             var consumer = new EventingBasicConsumer(channel);
             consumer.Received += (model, ea) =>
             {
+                int userId = -1;
+
                 try
                 {
                     var body = ea.Body.ToArray();
                     var json = Encoding.UTF8.GetString(body);
                     var rabbitProductRequest = JsonConvert.DeserializeObject<RabbitRequestProductData>(json);
+
+                    userId = rabbitProductRequest.userId;
 
                     if (rabbitProductRequest == null)
                     {
@@ -75,15 +84,17 @@ namespace OrderServiceBot
                 {
                     Console.WriteLine("no element, return error for customer");
                     channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
-                    PublishProduct(channel, new Message("selector errors"));
+                    PublishProduct(channel, new Message(userId, "BOT cannot get item information"));
                 }
                 catch(Exception ex)
                 {
                     if (ex.Message.Contains("invalid argument"))
                     {
                         Console.WriteLine("invalid argument exception");
+                        PublishProduct(channel, new Message(userId, "invalid argument (url?)"));
+
                         channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
-                        PublishProduct(channel, new Message("invalid arguments"));
+                        
 
                     }
                     else

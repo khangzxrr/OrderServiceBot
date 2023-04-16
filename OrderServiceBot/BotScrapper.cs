@@ -25,7 +25,7 @@ namespace OrderServiceBot
 
             chromeOptions.AddArgument("--no-sandbox");
 
-            driver = new RemoteWebDriver(new Uri("http://host.docker.internal:4444"), chromeOptions);
+            driver = new RemoteWebDriver(new Uri($"http://{Environment.GetEnvironmentVariable("HOSTNAME")}:4444"), chromeOptions);
         }
 
         public RabbitResponseProductData Scrape(RabbitRequestProductData rabbitProductRequest)

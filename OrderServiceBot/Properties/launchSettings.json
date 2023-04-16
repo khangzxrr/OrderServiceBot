@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "OrderServiceBot": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "RABBIT_HOSTNAME": "host.docker.internal"
+      }
+    }
+  }
+}
