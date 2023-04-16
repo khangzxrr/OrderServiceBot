@@ -3,7 +3,7 @@
     "OrderServiceBot": {
       "commandName": "Project",
       "environmentVariables": {
-        "RABBIT_HOSTNAME": "host.docker.internal"
+        "HOSTNAME": "host.docker.internal"
       }
     }
   }

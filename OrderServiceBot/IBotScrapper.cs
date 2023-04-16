@@ -1,5 +1,7 @@
 ﻿
 
+using OrderService.Core.RabbitMqDto;
+
 namespace OrderServiceBot
 {
     public interface IBotScrapper: IDisposable

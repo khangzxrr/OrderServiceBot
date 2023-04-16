@@ -3,6 +3,7 @@ using RabbitMQ.Client.Events;
 using RabbitMQ.Client;
 using Newtonsoft.Json;
 using OpenQA.Selenium;
+using OrderService.Core.RabbitMqDto;
 
 namespace OrderServiceBot
 {
@@ -83,6 +84,12 @@ namespace OrderServiceBot
                 catch(NoSuchElementException)
                 {
                     Console.WriteLine("no element, return error for customer");
+                    channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
+                    PublishProduct(channel, new Message(userId, "BOT cannot get item information"));
+                }
+                catch (JsonReaderException)
+                {
+                    Console.WriteLine("invalid json");
                     channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
                     PublishProduct(channel, new Message(userId, "BOT cannot get item information"));
                 }

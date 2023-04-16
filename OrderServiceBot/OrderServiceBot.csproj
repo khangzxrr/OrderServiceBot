@@ -15,4 +15,8 @@
     <PackageReference Include="WebDriverManager" Version="2.16.2" />
     <PackageReference Include="Selenium.UndetectedChromeDriver" Version="1.1.1" />
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\OrderService\src\OrderService.Core\OrderService.Core.csproj" />
+  </ItemGroup>
 </Project>
