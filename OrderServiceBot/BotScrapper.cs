@@ -92,26 +92,54 @@ namespace OrderServiceBot
 
             string pattern = "ddd, MMM d";
 
-            var estimateFirstShipDateSelector = By.CssSelector($".ux-table-section-with-hints--shippingTable td:nth-child(5) > span:nth-child(2)");
-            var estimateFirstShipDateSelector2 = By.CssSelector($".ux-table-section-with-hints--shippingTable td:nth-child(5) > .ux-textspans--BOLD:nth-child(4)");
-
-            var firstShipDateString = driver.FindElement(estimateFirstShipDateSelector).Text;
-            var firstShipUsingSecondSelector = false;
-
-            if (firstShipDateString.Trim() == "") { 
-                firstShipUsingSecondSelector = true;
-                firstShipDateString = driver.FindElement(estimateFirstShipDateSelector2).Text;
-            }
-
-
-            var estimateSecondShipDateSelector = By.CssSelector($".ux-table-section-with-hints--shippingTable td:nth-child(5) > span:nth-child(4)");
-            var estimateSecondShipDateSelector2 = By.CssSelector($".ux-table-section-with-hints--shippingTable td:nth-child(5) > .ux-textspans--BOLD:nth-child(6)");
-            var secondShipDateString = driver.FindElement(estimateSecondShipDateSelector).Text;
-
-            if (secondShipDateString.Trim() == "" || firstShipUsingSecondSelector)
+            var firstShipDateSelector = new List<By>
             {
-                secondShipDateString = driver.FindElement(estimateSecondShipDateSelector2).Text;    
+                By.CssSelector($".ux-table-section-with-hints--shippingTable td:nth-child(5) > span:nth-child(2)"),
+                By.CssSelector($".ux-table-section-with-hints--shippingTable td:nth-child(5) > .ux-textspans--BOLD:nth-child(4)"),
+                By.CssSelector($"td.ux-table-section__cell:nth-child(4) > span:nth-child(2)")
+            };
+
+
+            int firstShipDateSelectorIndex;
+            string firstShipDateString = "";
+            for (firstShipDateSelectorIndex = 0; firstShipDateSelectorIndex < firstShipDateSelector.Count; firstShipDateSelectorIndex++)
+            {
+                var currentSelector = firstShipDateSelector[firstShipDateSelectorIndex];
+
+                var firstShipTextElements = driver.FindElements(currentSelector);
+
+                if (firstShipTextElements.Count > 0)
+                {
+                    firstShipDateString = firstShipTextElements.First().Text;
+                    
+                    if (firstShipDateString.Trim() == "") //continue to find text if string is empty
+                    {
+                        continue;
+                    }
+
+                    break;
+                }
             }
+
+            if (firstShipDateSelectorIndex == firstShipDateSelector.Count)
+            {
+                throw new NoSuchElementException("no such first ship date element");
+            }
+
+            var secondShipDateSelectors = new List<By>
+            {
+                By.CssSelector($".ux-table-section-with-hints--shippingTable td:nth-child(5) > span:nth-child(4)"),
+                By.CssSelector($".ux-table-section-with-hints--shippingTable td:nth-child(5) > .ux-textspans--BOLD:nth-child(6)"),
+                By.CssSelector($"td.ux-table-section__cell:nth-child(4) > span:nth-child(4)")
+            };
+
+            var secondShipDateElement = driver.FindElement(secondShipDateSelectors[firstShipDateSelectorIndex]);
+
+            if (secondShipDateElement == null) {
+                throw new NoSuchElementException("no such element second ship date, selector: " + secondShipDateSelectors[firstShipDateSelectorIndex]);
+            }
+
+            var secondShipDateString = secondShipDateElement.Text;
 
             DateTime firstShipDate = DateTime.ParseExact(firstShipDateString, pattern, CultureInfo.InvariantCulture);
             DateTime secondShipDate = DateTime.ParseExact(secondShipDateString, pattern, CultureInfo.InvariantCulture);
@@ -127,13 +155,17 @@ namespace OrderServiceBot
                 returnDaysString = driver.FindElement(returnDaysTopSelector).Text;
             }
 
-            var returnDays = -1;
+            returnDaysString = returnDaysString.Split(" ")[0];
 
-            if (!returnDaysString.Contains("Seller does not accept returns"))
+            int returnDays;
+
+            bool successParseReturnDays = int.TryParse(returnDaysString, out returnDays);
+
+            if (!successParseReturnDays)
             {
-                returnDaysString = returnDaysString.Split(" ")[0];
-                returnDays = int.Parse(returnDaysString);
+                returnDays = -1;
             }
+            
 
             Console.WriteLine($"======\nCatalog: {category}\nProduct: {title}\nPrice: {price}\nShip cost: {shipCost}\nShip Date: {estimatedShipsDay}\nReturn Days: {returnDays}");
 
