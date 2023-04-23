@@ -81,9 +81,9 @@ namespace OrderServiceBot
 
                     channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
                 }
-                catch(NoSuchElementException)
+                catch(NoSuchElementException ex)
                 {
-                    Console.WriteLine("no element, return error for customer");
+                    Console.WriteLine("no element, return error for customer, selector:" + ex.Message);
                     channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
                     PublishProduct(channel, new Message(userId, "BOT cannot get item information"));
                 }
