@@ -38,7 +38,7 @@ namespace OrderServiceBot
 
         public RabbitResponseProductData Scrape(RabbitRequestProductData rabbitProductRequest)
         {
-            driver.Navigate().GoToUrl(rabbitProductRequest.productUrl);
+            driver.Navigate().GoToUrl(rabbitProductRequest.productUrl.Trim());
 
             var titleSelector = By.CssSelector("#LeftSummaryPanel h1 > span");
             var title = driver.FindElement(titleSelector).Text;
