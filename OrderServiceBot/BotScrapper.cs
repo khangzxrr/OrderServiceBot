@@ -29,9 +29,11 @@ namespace OrderServiceBot
 
             chromeOptions.AddArgument("--no-sandbox");
 
-            string hostname = $"http://{Environment.GetEnvironmentVariable("HOSTNAME")}:4444";
+            string hostname = $"http://{Environment.GetEnvironmentVariable("HOSTNAME")}:4444/wd/hub/";
 
             driver = new RemoteWebDriver(new Uri(hostname), chromeOptions);
+
+            driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
         }
 
         public RabbitResponseProductData Scrape(RabbitRequestProductData rabbitProductRequest)
@@ -75,9 +77,29 @@ namespace OrderServiceBot
             var submitShipSelector = By.CssSelector(".ux-shipping-calculator__getRates > button");
             driver.FindElement(submitShipSelector).Click();
 
-            Thread.Sleep(200);
+            Console.WriteLine("waiting for present shipCost element");
+
+
+            var wait = new WebDriverWait(driver, TimeSpan.FromSeconds(20));
+
+            wait.Until((driver) =>
+            {
+                var tableSelector = By.CssSelector(".ux-table-section-with-hints--shippingTable");
+
+                var tableElement = driver.FindElement(tableSelector);
+
+                if (tableElement.Displayed)
+                {
+                    return tableElement;
+                }
+
+                return null;
+            });
 
            var shipCostSelector = By.CssSelector(".ux-table-section-with-hints--shippingTable > tbody:nth-child(2) > tr:nth-child(1) > td:nth-child(1) > span:nth-child(1)");
+
+
+
             var shipCostString = driver.FindElement(shipCostSelector).Text;
 
             double shipCost = 0;
