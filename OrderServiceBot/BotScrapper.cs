@@ -33,7 +33,7 @@ namespace OrderServiceBot
 
             driver = new RemoteWebDriver(new Uri(hostname), chromeOptions);
 
-            driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(30);
+            driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(2);
         }
 
         public RabbitResponseProductData Scrape(RabbitRequestProductData rabbitProductRequest)
@@ -46,8 +46,30 @@ namespace OrderServiceBot
             var categorySelector = By.CssSelector("ul > li > a > span");
             var category = driver.FindElement(categorySelector).Text;
 
-            var priceSelector = By.CssSelector("span[itemprop=\"price\"]");
-            var priceString = driver.FindElement(priceSelector).Text;
+            var priceSelectors = new List<By> { 
+                By.CssSelector("span[itemprop=\"price\"]"),
+                By.CssSelector(".x-price-primary > span:nth-child(1)")
+            };
+
+
+
+            var priceString = "";
+            foreach(var priceSelector in priceSelectors)
+            {
+                priceString = driver.FindElement(priceSelector).Text;
+
+                if (priceString != "")
+                {
+
+                    break;
+                }
+
+                var priceDetailModalButtonSelector = By.CssSelector("button.infotip__host.icon-btn.icon-btn--transparent");
+
+                driver.FindElement(priceDetailModalButtonSelector).Click();
+
+                Thread.Sleep(300);
+            }
 
             Regex priceRegex = new Regex("-?\\d+(?:\\.\\d+)?", RegexOptions.IgnoreCase);
 
@@ -80,7 +102,7 @@ namespace OrderServiceBot
             Console.WriteLine("waiting for present shipCost element");
 
 
-            var wait = new WebDriverWait(driver, TimeSpan.FromSeconds(20));
+            var wait = new WebDriverWait(driver, TimeSpan.FromSeconds(30));
 
             wait.Until((driver) =>
             {
@@ -157,19 +179,21 @@ namespace OrderServiceBot
                 By.CssSelector($"td.ux-table-section__cell:nth-child(4) > span:nth-child(4)")
             };
 
-                var secondShipDateElement = driver.FindElement(secondShipDateSelectors[firstShipDateSelectorIndex]);
+                var secondShipDateElements = driver.FindElements(secondShipDateSelectors[firstShipDateSelectorIndex]);
 
-                if (secondShipDateElement == null)
+
+
+                if (secondShipDateElements.Count == 0)
                 {
-                    throw new NoSuchElementException("no such element second ship date, selector: " + secondShipDateSelectors[firstShipDateSelectorIndex]);
+                    estimatedShipsDay = 15;
+                } else
+                {
+                    var secondShipDateString = secondShipDateElements.First().Text;
+
+                    DateTime firstShipDate = DateTime.ParseExact(firstShipDateString, pattern, CultureInfo.InvariantCulture);
+                    DateTime secondShipDate = DateTime.ParseExact(secondShipDateString, pattern, CultureInfo.InvariantCulture);
                 }
 
-                var secondShipDateString = secondShipDateElement.Text;
-
-                DateTime firstShipDate = DateTime.ParseExact(firstShipDateString, pattern, CultureInfo.InvariantCulture);
-                DateTime secondShipDate = DateTime.ParseExact(secondShipDateString, pattern, CultureInfo.InvariantCulture);
-
-                estimatedShipsDay = (int)(secondShipDate - firstShipDate).TotalDays;
             }
 
             var returnDaysSelector = By.CssSelector("table.ux-table-section:nth-child(2) > tbody:nth-child(2) > tr:nth-child(1) > td:nth-child(1) > span:nth-child(1)");
