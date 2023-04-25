@@ -33,7 +33,7 @@ namespace OrderServiceBot
 
             driver = new RemoteWebDriver(new Uri(hostname), chromeOptions);
 
-            driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
+            driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(30);
         }
 
         public RabbitResponseProductData Scrape(RabbitRequestProductData rabbitProductRequest)
