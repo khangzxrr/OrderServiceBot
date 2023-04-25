@@ -60,7 +60,7 @@ namespace OrderServiceBot
             var tabShipSelector = By.CssSelector("#TABS_SPR");
             driver.FindElement(tabShipSelector).Click();
 
-            Thread.Sleep(200);
+            Thread.Sleep(500);
 
             var countrySelector = By.CssSelector("#shCountry");
             var countrySelectElement = driver.FindElement(countrySelector);
@@ -143,30 +143,34 @@ namespace OrderServiceBot
                 }
             }
 
+            var estimatedShipsDay = 0;
+
             if (firstShipDateSelectorIndex == firstShipDateSelector.Count)
             {
-                throw new NoSuchElementException("no such first ship date element");
-            }
-
-            var secondShipDateSelectors = new List<By>
+                estimatedShipsDay = 15; //estimate if cannot find firstShip
+            } else
+            {
+                var secondShipDateSelectors = new List<By>
             {
                 By.CssSelector($".ux-table-section-with-hints--shippingTable td:nth-child(5) > span:nth-child(4)"),
                 By.CssSelector($".ux-table-section-with-hints--shippingTable td:nth-child(5) > .ux-textspans--BOLD:nth-child(6)"),
                 By.CssSelector($"td.ux-table-section__cell:nth-child(4) > span:nth-child(4)")
             };
 
-            var secondShipDateElement = driver.FindElement(secondShipDateSelectors[firstShipDateSelectorIndex]);
+                var secondShipDateElement = driver.FindElement(secondShipDateSelectors[firstShipDateSelectorIndex]);
 
-            if (secondShipDateElement == null) {
-                throw new NoSuchElementException("no such element second ship date, selector: " + secondShipDateSelectors[firstShipDateSelectorIndex]);
+                if (secondShipDateElement == null)
+                {
+                    throw new NoSuchElementException("no such element second ship date, selector: " + secondShipDateSelectors[firstShipDateSelectorIndex]);
+                }
+
+                var secondShipDateString = secondShipDateElement.Text;
+
+                DateTime firstShipDate = DateTime.ParseExact(firstShipDateString, pattern, CultureInfo.InvariantCulture);
+                DateTime secondShipDate = DateTime.ParseExact(secondShipDateString, pattern, CultureInfo.InvariantCulture);
+
+                estimatedShipsDay = (int)(secondShipDate - firstShipDate).TotalDays;
             }
-
-            var secondShipDateString = secondShipDateElement.Text;
-
-            DateTime firstShipDate = DateTime.ParseExact(firstShipDateString, pattern, CultureInfo.InvariantCulture);
-            DateTime secondShipDate = DateTime.ParseExact(secondShipDateString, pattern, CultureInfo.InvariantCulture);
-
-            var estimatedShipsDay = (int)(secondShipDate - firstShipDate).TotalDays;
 
             var returnDaysSelector = By.CssSelector("table.ux-table-section:nth-child(2) > tbody:nth-child(2) > tr:nth-child(1) > td:nth-child(1) > span:nth-child(1)");
             var returnDaysTopSelector = By.CssSelector(".ux-labels-values--returns > div:nth-child(2) > div:nth-child(1) > div:nth-child(1) > span:nth-child(1)");
