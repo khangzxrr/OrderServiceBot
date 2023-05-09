@@ -219,7 +219,7 @@ namespace OrderServiceBot
 
             Console.WriteLine($"======\nCatalog: {category}\nProduct: {title}\nPrice: {price}\nShip cost: {shipCost}\nShip Date: {estimatedShipsDay}\nReturn Days: {returnDays}");
 
-            RabbitResponseProductData productData = new RabbitResponseProductData(rabbitProductRequest.userId, imageUrl, category, title, price, estimatedShipsDay, shipCost, rabbitProductRequest.productUrl, returnDays);   
+            RabbitResponseProductData productData = new RabbitResponseProductData(rabbitProductRequest.connectionId, imageUrl, category, title, price, estimatedShipsDay, shipCost, rabbitProductRequest.productUrl, returnDays);   
 
             return productData;
         }

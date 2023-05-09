@@ -58,7 +58,7 @@ namespace OrderServiceBot
             var consumer = new EventingBasicConsumer(channel);
             consumer.Received += (model, ea) =>
             {
-                int userId = -1;
+                string userId = "";
 
                 try
                 {
@@ -66,7 +66,7 @@ namespace OrderServiceBot
                     var json = Encoding.UTF8.GetString(body);
                     var rabbitProductRequest = JsonConvert.DeserializeObject<RabbitRequestProductData>(json);
 
-                    userId = rabbitProductRequest.userId;
+                    userId = rabbitProductRequest.connectionId;
 
                     if (rabbitProductRequest == null)
                     {

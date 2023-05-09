@@ -4,12 +4,12 @@ namespace OrderServiceBot
     public class Message
     {
         public string message { get; set; }
-        public int userId { get; set; }
+        public string connectionId { get; set; }
 
-        public Message(int userId, string message)
+        public Message(string connectionId, string message)
         {
             this.message = message;
-            this.userId = userId;
+            this.connectionId = connectionId;
         }   
     }
 }
